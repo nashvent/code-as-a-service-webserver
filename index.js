@@ -18,7 +18,7 @@ const requestListener = function (req, res) {
 
         req.on("end", async function () {
             res.writeHead(200, { "Content-Type": "application/json" });
-            console.log("body", data);
+
             var result = await excecuteCode(data.code);
             var response = {
                 "result":result
@@ -33,7 +33,6 @@ server.listen(8080);
 
 
 async function excecuteCode(codeStr) {
-    console.log("excecute", codeStr);
     var write = await writePythonFile(codeStr);
     if(write){
         var result = await runFile();
