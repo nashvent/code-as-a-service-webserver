@@ -15,9 +15,7 @@ const requestListener = function (req, res) {
         res.end();
         return;
     }
-    console.log("req.method", req.method);
-
-
+    
     if (req.method === "GET") {
         res.writeHead(200);
         res.end('Backed Code as a Service');
@@ -46,12 +44,10 @@ const requestListener = function (req, res) {
 
     res.writeHead(405, headers);
     res.end(`${req.method} is not allowed for the request.`);
-
 }
 
 const server = http.createServer(requestListener);
 server.listen(8080);
-
 
 async function excecuteCode(codeStr) {
     var write = await writePythonFile(codeStr);
