@@ -2,11 +2,13 @@ const http = require('http');
 const { exec } = require("child_process");
 const fs = require('fs').promises;
 
+const directorySources= "files/"
+
 const requestListener = function (req, res) {
     let headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Accept'
+        'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept'
     };
     res.writeHead(200, headers);
 
@@ -17,8 +19,11 @@ const requestListener = function (req, res) {
     }
     
     if (req.method === "GET") {
-        res.writeHead(200);
-        res.end('Backed Code as a Service');
+        res.writeHead(200, headers);
+        var response = {
+            "token":token()
+        }
+        res.end(JSON.stringify(response));
         return;
     }
     
@@ -33,7 +38,8 @@ const requestListener = function (req, res) {
         req.on("end", async function () {
             res.writeHead(200,headers);
 
-            var result = await excecuteCode(data.code);
+            var result = await excecuteCode(data.code, data.token);
+            console.log("result", result);
             var response = {
                 "result":result
             }
@@ -49,19 +55,20 @@ const requestListener = function (req, res) {
 const server = http.createServer(requestListener);
 server.listen(8080);
 
-async function excecuteCode(codeStr) {
-    var write = await writePythonFile(codeStr);
-    if (write) {
-        var result = await runFile();
+async function excecuteCode(codeStr, token) {
+    const filename = await writePythonFile(codeStr, token);
+    if (filename) {
+        var result = await runFile(filename);
         return result;
     }
     return "Unkown error"
 }
 
-async function writePythonFile(codeStr) {
+async function writePythonFile(codeStr, token) {
+    const filename = directorySources + token +".py"
     try {
-        await fs.writeFile('code.py', codeStr);
-        return true;
+        await fs.writeFile(filename, codeStr);
+        return filename;
     } catch (error) {
         console.log("error", error);
         return false;
@@ -69,8 +76,8 @@ async function writePythonFile(codeStr) {
 }
 
 
-async function runFile() {
-    var result = await execShellCommand('python3 code.py');
+async function runFile(filename) {
+    var result = await execShellCommand('python3 '+filename);
     return result;
 }
 
@@ -86,3 +93,14 @@ async function execShellCommand(cmd) {
         });
     });
 }
+
+
+// GENERATE TOKEN
+
+function rand() {
+    return Math.random().toString(36).substr(2);
+};
+
+function token() {
+    return (rand() + rand()).toString();
+};
