@@ -3,21 +3,37 @@ const { exec } = require("child_process");
 const fs = require('fs').promises;
 
 const requestListener = function (req, res) {
+    let headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Accept'
+    };
+    res.writeHead(200, headers);
+
+    if (req.method === 'OPTIONS') {
+        res.writeHead(204, headers);
+        res.end();
+        return;
+    }
+    console.log("req.method", req.method);
+
 
     if (req.method === "GET") {
         res.writeHead(200);
         res.end('Backed Code as a Service');
+        return;
     }
-
-    else if (req.method === "POST") {
+    
+    if (req.method === "POST") {
         var data = {}
         req.on("data", function (chunk) {
             var bodyStr = "" + chunk;
             data = JSON.parse(bodyStr);
+            console.log("receive data", bodyStr);
         });
 
         req.on("end", async function () {
-            res.writeHead(200, { "Content-Type": "application/json" });
+            res.writeHead(200,headers);
 
             var result = await excecuteCode(data.code);
             var response = {
@@ -25,7 +41,12 @@ const requestListener = function (req, res) {
             }
             res.end(JSON.stringify(response));
         });
+        return;
     }
+
+    res.writeHead(405, headers);
+    res.end(`${req.method} is not allowed for the request.`);
+
 }
 
 const server = http.createServer(requestListener);
@@ -34,7 +55,7 @@ server.listen(8080);
 
 async function excecuteCode(codeStr) {
     var write = await writePythonFile(codeStr);
-    if(write){
+    if (write) {
         var result = await runFile();
         return result;
     }
