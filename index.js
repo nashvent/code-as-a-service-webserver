@@ -23,6 +23,7 @@ const requestListener = function (req, res) {
         var response = {
             "token":token()
         }
+        console.log("new user",response.token);
         res.end(JSON.stringify(response));
         return;
     }

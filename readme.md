@@ -1,4 +1,14 @@
 # Code as a Service
+## Execute Docker
+```
+docker build -t nashvent:node-server .
+docker run \
+    -it \
+    --rm \
+    -p 8000:8080 \
+    nashvent:node-server
+```
+
 ## Excecute
 ```
 node index.js
